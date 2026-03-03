@@ -1,11 +1,16 @@
 package com.it342.backend.controller;
 
+import com.it342.backend.dto.UpdateUserRoleRequest;
 import com.it342.backend.dto.UserSummaryResponse;
 import com.it342.backend.model.User;
+import com.it342.backend.model.UserRole;
 import com.it342.backend.repository.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -61,6 +66,42 @@ public class UserController {
         return toSummary(saved);
     }
 
+    @PutMapping("/{id}/role")
+    public UserSummaryResponse updateUserRole(
+            @PathVariable Long id,
+            @RequestBody UpdateUserRoleRequest request
+    ) {
+        String adminEmail = normalizeEmail(request.getAdminEmail());
+        if (adminEmail.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "adminEmail is required");
+        }
+
+        User adminUser = userRepository.findByEmailIgnoreCase(adminEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Admin user not found"));
+
+        if (adminUser.getRole() != UserRole.ADMIN) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin role required");
+        }
+
+        UserRole nextRole = parseRole(request.getRole());
+
+        User target = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Target user not found"));
+
+        if (target.getRole() == UserRole.ADMIN
+                && nextRole == UserRole.USER
+                && userRepository.countByRole(UserRole.ADMIN) <= 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "At least one admin account must remain"
+            );
+        }
+
+        target.setRole(nextRole);
+        User saved = userRepository.save(target);
+        return toSummary(saved);
+    }
+
     private UserSummaryResponse toSummary(User user) {
         return new UserSummaryResponse(
                 user.getId(),
@@ -71,5 +112,21 @@ public class UserController {
                 user.getCoverPicUrl(),
                 user.getRole().name()
         );
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private UserRole parseRole(String role) {
+        if (role == null || role.isBlank()) {
+            return UserRole.USER;
+        }
+
+        try {
+            return UserRole.valueOf(role.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role");
+        }
     }
 }

@@ -65,7 +65,7 @@ function Sidebar({ isOpen, onToggle }) {
 
                 {role === "ADMIN" && (
                     <button onClick={() => goTo("/admin")}>
-                        Admin Panel
+                        Admin Dashboard
                     </button>
                 )}
             </nav>

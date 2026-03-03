@@ -160,7 +160,7 @@ function Settings() {
                             <div className="settings-actions">
                                 <p>Admin access is active.</p>
                                 <button className="apple-btn primary small" onClick={() => navigate("/admin")}>
-                                    Open Admin Panel
+                                    Open Admin Dashboard
                                 </button>
                             </div>
                         ) : adminExists ? (

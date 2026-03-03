@@ -34,8 +34,8 @@ function Login() {
                 localStorage.setItem("email", res.data.data.email);
                 localStorage.setItem("role", res.data.data.role || "USER");
 
-
-                navigate("/dashboard");
+                const nextRole = (res.data?.data?.role || "USER").toUpperCase();
+                navigate(nextRole === "ADMIN" ? "/admin" : "/dashboard");
             } else {
                 alert(res.data.message);
             }

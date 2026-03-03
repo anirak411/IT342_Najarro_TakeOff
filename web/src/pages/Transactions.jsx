@@ -73,9 +73,9 @@ function Transactions() {
 
                 {role === "ADMIN" && (
                     <div className="settings-card">
-                        <p>You are an admin. Use the admin panel to hold/release/refund escrow.</p>
+                        <p>You are an admin. Use the admin dashboard to hold/release/refund escrow.</p>
                         <button className="apple-btn primary small" onClick={() => navigate("/admin")}>
-                            Open Admin Panel
+                            Open Admin Dashboard
                         </button>
                     </div>
                 )}
