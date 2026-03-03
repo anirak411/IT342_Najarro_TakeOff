@@ -26,11 +26,9 @@ public class User {
     @Column(nullable = false, length = 20)
     private UserRole role = UserRole.USER;
 
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String profilePicUrl;
 
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String coverPicUrl;
 

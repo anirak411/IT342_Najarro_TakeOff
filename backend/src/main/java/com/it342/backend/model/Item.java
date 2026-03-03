@@ -23,7 +23,6 @@ public class Item {
     private String sellerName;
     private String sellerEmail;
 
-    @Lob
     @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
