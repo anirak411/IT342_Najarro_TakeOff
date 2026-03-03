@@ -39,8 +39,12 @@ function Login() {
             } else {
                 alert(res.data.message);
             }
-        } catch {
-            alert("Login failed.");
+        } catch (err) {
+            const message =
+                err?.response?.data?.message ||
+                err?.message ||
+                "Login failed.";
+            alert(message);
         }
     };
 
