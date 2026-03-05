@@ -30,7 +30,7 @@ Backend:
 - Java 17
 - Spring Boot 3.x
 - Spring Data JPA
-- MySQL
+- PostgreSQL (local or Supabase)
 - Cloudinary (image storage)
 
 Web:
@@ -60,10 +60,18 @@ cd IT342_G5_Najarro_Lab1
 2. Backend:
 ```bash
 cd backend
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/tradeoff
+export SPRING_DATASOURCE_USERNAME=postgres
+export SPRING_DATASOURCE_PASSWORD=postgres
 mvn clean install
 mvn spring-boot:run
 ```
 Backend runs on `http://localhost:8080`.
+
+For Supabase instead of local Postgres, set:
+- `SPRING_DATASOURCE_URL=jdbc:postgresql://db.sxzdsgtjkfnzeedgbqhb.supabase.co:5432/postgres?sslmode=require`
+- `SPRING_DATASOURCE_USERNAME=postgres`
+- `SPRING_DATASOURCE_PASSWORD=<your-supabase-db-password>`
 
 3. Web:
 ```bash
