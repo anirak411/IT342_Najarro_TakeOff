@@ -20,4 +20,7 @@ yarn-error.log*
 .env.local
 .env.*.local
 /backend/src/main/resources/application.properties
+/Users/monicanajarro/IT342_Najarro_TakeOff/scripts
+/Users/monicanajarro/IT342_Najarro_TakeOff/.idea
+/Users/monicanajarro/IT342_Najarro_TakeOff/.gradle-local
 
