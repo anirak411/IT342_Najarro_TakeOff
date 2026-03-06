@@ -1,6 +1,7 @@
 package com.it342.backend.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "items")
@@ -14,22 +15,20 @@ public class Item {
     private String description;
     private double price;
 
-    private String sellerName;
-
     private String category;
+    @Column(name = "item_condition")
+    private String condition;
+    private String location;
+
+    private String sellerName;
+    private String sellerEmail;
+
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
-    public Item() {}
+    private LocalDateTime createdAt;
 
-    public Item(String title, String description, double price, String sellerName,
-                String category, String imageUrl) {
-        this.title = title;
-        this.description = description;
-        this.price = price;
-        this.sellerName = sellerName;
-        this.category = category;
-        this.imageUrl = imageUrl;
-    }
+    public Item() {}
 
     public Long getId() {
         return id;
@@ -59,14 +58,6 @@ public class Item {
         this.price = price;
     }
 
-    public String getSellerName() {
-        return sellerName;
-    }
-
-    public void setSellerName(String sellerName) {
-        this.sellerName = sellerName;
-    }
-
     public String getCategory() {
         return category;
     }
@@ -75,11 +66,58 @@ public class Item {
         this.category = category;
     }
 
+    public String getCondition() {
+        return condition;
+    }
+
+    public void setCondition(String condition) {
+        this.condition = condition;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getSellerName() {
+        return sellerName;
+    }
+
+    public void setSellerName(String sellerName) {
+        this.sellerName = sellerName;
+    }
+
+    public String getSellerEmail() {
+        return sellerEmail;
+    }
+
+    public void setSellerEmail(String sellerEmail) {
+        this.sellerEmail = sellerEmail;
+    }
+
     public String getImageUrl() {
         return imageUrl;
     }
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
     }
 }
