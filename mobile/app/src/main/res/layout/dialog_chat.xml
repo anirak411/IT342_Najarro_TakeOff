@@ -2,65 +2,132 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/bg_glass_dialog"
     android:orientation="vertical"
-    android:paddingTop="6dp"
-    android:paddingBottom="6dp">
-
-    <TextView
-        android:id="@+id/tvChatPartner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@color/text_main"
-        android:textSize="15sp"
-        android:textStyle="bold" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvChatMessages"
-        android:layout_width="match_parent"
-        android:layout_height="260dp"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/bg_glass_panel"
-        android:padding="8dp" />
-
-    <TextView
-        android:id="@+id/tvChatState"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:textColor="@color/text_sub"
-        android:textSize="12sp" />
+    android:padding="14dp">
 
     <LinearLayout
+        android:id="@+id/layoutChatBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_glass_panel"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:minHeight="46dp"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="8dp">
+
+        <Button
+            android:id="@+id/btnChatBack"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_btn_outline"
+            android:minHeight="0dp"
+            android:text="@string/action_inbox"
+            android:textAllCaps="false"
+            android:textColor="@color/text_main"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/tvChatBarTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="@string/chat_bar_title"
+            android:textColor="@color/text_main"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvChatToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/action_minimize"
+            android:textColor="@color/text_sub"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btnChatClose"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/bg_btn_outline"
+            android:minHeight="0dp"
+            android:text="@string/action_close"
+            android:textAllCaps="false"
+            android:textColor="@color/text_main"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutChatContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:orientation="horizontal">
+        android:orientation="vertical">
 
-        <EditText
-            android:id="@+id/etChatInput"
-            android:layout_width="0dp"
-            android:layout_height="42dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_input_pill"
-            android:hint="@string/hint_type_message"
-            android:inputType="textCapSentences"
-            android:maxLines="1"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
+        <TextView
+            android:id="@+id/tvChatPartner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:textColor="@color/text_main"
-            android:textColorHint="@color/text_sub" />
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnChatSend"
-            android:layout_width="wrap_content"
-            android:layout_height="42dp"
-            android:layout_marginStart="8dp"
-            android:background="@drawable/bg_btn_primary"
-            android:minHeight="0dp"
-            android:text="@string/action_send"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white"
-            android:textSize="13sp" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvChatMessages"
+            android:layout_width="match_parent"
+            android:layout_height="260dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_glass_panel"
+            android:padding="8dp" />
+
+        <TextView
+            android:id="@+id/tvChatState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/text_sub"
+            android:textSize="12sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/etChatInput"
+                android:layout_width="0dp"
+                android:layout_height="42dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_input_pill"
+                android:hint="@string/hint_type_message"
+                android:inputType="textCapSentences"
+                android:maxLines="1"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:textColor="@color/text_main"
+                android:textColorHint="@color/text_sub" />
+
+            <Button
+                android:id="@+id/btnChatSend"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_btn_primary"
+                android:minHeight="0dp"
+                android:text="@string/action_send"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:textSize="13sp" />
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

@@ -35,6 +35,27 @@
     <string name="action_change_image">Change Image</string>
     <string name="action_send">Send</string>
     <string name="action_remove_image">Remove Image</string>
+    <string name="action_minimize">Minimize</string>
+    <string name="action_open">Open</string>
+    <string name="action_inbox">Inbox</string>
+    <string name="action_notifications">Open notifications</string>
+    <string name="action_clear_notifications">Clear</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_mine">My</string>
+    <string name="chat_fab_label">Chat</string>
+    <string name="chat_fab_content_desc">Open chat contacts</string>
+    <string name="inbox_title">Inbox</string>
+    <string name="inbox_subtitle">Recent conversations</string>
+    <string name="inbox_empty">No chats yet. Start messaging from a listing or contact.</string>
+    <string name="customer_support_label">Customer Support</string>
+    <string name="inbox_support_preview">Need help? Send your concern here.</string>
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_subtitle">Unread updates and alerts</string>
+    <string name="notifications_empty">You\'re all caught up.</string>
+    <string name="notification_new_messages">New messages: %1$s</string>
+    <string name="chat_preview_start">Tap to start chatting</string>
+    <string name="chat_preview_you">You: %1$s</string>
+    <string name="chat_admin_restricted">You can only message admins via Customer Support or listing request threads.</string>
 
     <string name="hint_email">Email</string>
     <string name="hint_password">Password</string>
@@ -56,6 +77,7 @@
     <string name="error_fill_register">Fill in all registration fields.</string>
 
     <string name="dashboard_welcome">Welcome, %1$s</string>
+    <string name="dashboard_welcome_generic">Welcome!</string>
     <string name="dashboard_loading">Loading listings...</string>
     <string name="dashboard_error">Could not load listings.</string>
     <string name="dashboard_empty">No listings yet.</string>
@@ -70,6 +92,8 @@
     <string name="items_count_filtered">%1$d of %2$d listings</string>
     <string name="profile_listing_count">Listings posted: %1$d</string>
     <string name="profile_name_fallback">User</string>
+    <string name="profile_full_name_label">Full name: %1$s</string>
+    <string name="profile_email_label">Email: %1$s</string>
 
     <string name="settings_title">Settings</string>
     <string name="settings_account">Account</string>
@@ -97,10 +121,14 @@
     <string name="chat_dialog_title">Chat with %1$s</string>
     <string name="chat_no_messages">No messages yet.</string>
     <string name="chat_no_contacts">No contacts available yet.</string>
+    <string name="chat_missing_contact">This listing has no valid seller contact.</string>
+    <string name="chat_self_not_allowed">You cannot chat with yourself.</string>
     <string name="chat_pick_contact">Pick a contact</string>
     <string name="chat_send_error">Failed to send message.</string>
     <string name="chat_load_error">Failed to load conversation.</string>
     <string name="chat_partner_label">%1$s (%2$s)</string>
+    <string name="chat_bar_title">Chat</string>
+    <string name="auth_required">Please sign in first.</string>
 
     <plurals name="dashboard_items_count">
         <item quantity="one">%d listing loaded</item>

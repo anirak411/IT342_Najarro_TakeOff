@@ -40,7 +40,7 @@
             android:layout_marginTop="4dp"
             android:maxLines="1"
             android:ellipsize="end"
-            android:textColor="#FF1E293B"
+            android:textColor="@color/text_main"
             android:textSize="15sp"
             android:textStyle="bold" />
 

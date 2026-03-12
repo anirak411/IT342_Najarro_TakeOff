@@ -6,6 +6,7 @@ import com.example.tradeoff.model.ChatMessage
 import com.example.tradeoff.model.Item
 import com.example.tradeoff.model.LoginRequest
 import com.example.tradeoff.model.SendMessageRequest
+import com.example.tradeoff.model.UserSummary
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -30,6 +31,9 @@ interface ApiService {
 
     @GET("/api/items")
     suspend fun getItems(): List<Item>
+
+    @GET("/api/users")
+    suspend fun getUsers(): List<UserSummary>
 
     @DELETE("/api/items/{id}")
     suspend fun deleteItem(

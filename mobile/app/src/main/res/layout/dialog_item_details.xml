@@ -9,7 +9,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:background="@drawable/bg_listing_dialog"
+        android:orientation="vertical"
+        android:padding="14dp">
 
         <ImageView
             android:id="@+id/ivDetailImage"
@@ -105,6 +107,18 @@
                 android:textColor="@android:color/white"
                 android:textSize="13sp" />
         </LinearLayout>
+
+        <Button
+            android:id="@+id/btnDetailClose"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_btn_outline"
+            android:minHeight="0dp"
+            android:text="@string/action_close"
+            android:textAllCaps="false"
+            android:textColor="@color/text_main"
+            android:textSize="13sp" />
     </LinearLayout>
 
 </ScrollView>
