@@ -22,3 +22,8 @@ yarn-error.log*
 .env.*.local
 backend/src/main/resources/application.properties
 scripts/
+.idea/
+build/
+*/build/
+.gradle/
+.gradle-local/
