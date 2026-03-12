@@ -24,10 +24,10 @@ export MYSQL_USER=root
 export MYSQL_PASSWORD='YOUR_MYSQL_PASSWORD'
 export MYSQL_DB='Najarro_Lab1'
 
-export PG_HOST='db.sxzdsgtjkfnzeedgbqhb.supabase.co'
+export PG_HOST='aws-1-ap-northeast-2.pooler.supabase.com'
 export PG_PORT=5432
 export PG_DB='postgres'
-export PG_USER='postgres'
+export PG_USER='postgres.sxzdsgtjkfnzeedgbqhb'
 export PG_PASSWORD='YOUR_SUPABASE_DB_PASSWORD'
 export PG_SSLMODE='require'
 ```
@@ -64,8 +64,8 @@ select 'refresh_tokens', count(*) from refresh_tokens;
 ## 6) Make Supabase your only DB
 
 1. In Render backend service, keep only Supabase DB env vars:
-   - `SPRING_DATASOURCE_URL=jdbc:postgresql://db.sxzdsgtjkfnzeedgbqhb.supabase.co:5432/postgres?sslmode=require`
-   - `SPRING_DATASOURCE_USERNAME=postgres`
+   - `SPRING_DATASOURCE_URL=jdbc:postgresql://aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require`
+   - `SPRING_DATASOURCE_USERNAME=postgres.sxzdsgtjkfnzeedgbqhb`
    - `SPRING_DATASOURCE_PASSWORD=<supabase-db-password>`
 2. Redeploy backend.
 3. Confirm the app can create a new listing and transaction in Supabase.

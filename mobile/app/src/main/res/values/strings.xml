@@ -61,7 +61,7 @@
     <string name="hint_password">Password</string>
     <string name="hint_full_name">Full Name</string>
     <string name="hint_display_name">Display Name (Username)</string>
-    <string name="hint_search_items">Search items on campus...</string>
+    <string name="hint_search_items">Search items...</string>
     <string name="hint_title">Title</string>
     <string name="hint_description">Description</string>
     <string name="hint_price">Price</string>

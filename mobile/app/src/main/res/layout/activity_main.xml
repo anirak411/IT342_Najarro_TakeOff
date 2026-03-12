@@ -426,6 +426,7 @@
             android:orientation="vertical">
 
             <LinearLayout
+                android:id="@+id/layoutDashboardHero"
                 android:layout_width="match_parent"
                 android:layout_height="196dp"
                 android:background="@drawable/bg_hero_banner"
@@ -813,7 +814,7 @@
                 android:contentDescription="@string/action_notifications"
                 android:padding="14dp"
                 android:scaleType="centerInside"
-                android:src="@android:drawable/ic_popup_reminder"
+                android:src="@drawable/ic_notifications_bell"
                 app:tint="@color/text_main" />
 
             <TextView
@@ -838,6 +839,102 @@
                 android:textStyle="bold"
                 android:visibility="gone" />
         </FrameLayout>
+    </LinearLayout>
+
+    <View
+        android:id="@+id/viewDashboardNotifScrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#40000000"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/layoutDashboardNotificationsPanel"
+        android:layout_width="332dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="98dp"
+        android:background="@drawable/bg_glass_dialog"
+        android:elevation="14dp"
+        android:orientation="vertical"
+        android:padding="14dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/notifications_title"
+                android:textColor="@color/text_main"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnDashboardNotificationsClose"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:background="@drawable/bg_btn_outline"
+                android:minHeight="0dp"
+                android:text="@string/action_close"
+                android:textAllCaps="false"
+                android:textColor="@color/text_main"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/notifications_subtitle"
+                android:textColor="@color/text_sub"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btnDashboardNotificationsClearAll"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_btn_outline"
+                android:minHeight="0dp"
+                android:text="@string/action_clear_notifications"
+                android:textAllCaps="false"
+                android:textColor="@color/text_main"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvDashboardNotificationsEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_glass_panel"
+            android:padding="12dp"
+            android:text="@string/notifications_empty"
+            android:textColor="@color/text_sub"
+            android:textSize="13sp"
+            android:visibility="gone" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvDashboardNotifications"
+            android:layout_width="match_parent"
+            android:layout_height="320dp"
+            android:layout_marginTop="10dp"
+            android:clipToPadding="false"
+            android:paddingBottom="4dp" />
+
     </LinearLayout>
 
 </FrameLayout>

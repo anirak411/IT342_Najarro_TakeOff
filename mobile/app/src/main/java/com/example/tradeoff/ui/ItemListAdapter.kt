@@ -9,11 +9,11 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.tradeoff.R
 import com.example.tradeoff.model.Item
+import com.example.tradeoff.utils.PriceFormatter
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import java.util.Locale
 
 class ItemListAdapter(
     private val onItemClick: ((Item) -> Unit)? = null
@@ -67,7 +67,7 @@ class ItemListAdapter(
             tvTitle.text = title
             tvPrice.text = itemView.context.getString(
                 R.string.item_price,
-                String.format(Locale.US, "%.2f", item.price)
+                PriceFormatter.format(item.price)
             )
             tvMeta.text = itemView.context.getString(
                 R.string.item_meta,

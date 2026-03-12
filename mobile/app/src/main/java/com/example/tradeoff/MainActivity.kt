@@ -42,6 +42,7 @@ import com.example.tradeoff.ui.ChatInboxAdapter
 import com.example.tradeoff.ui.ChatMessageAdapter
 import com.example.tradeoff.ui.ItemListAdapter
 import com.example.tradeoff.ui.NotificationAdapter
+import com.example.tradeoff.utils.PriceFormatter
 import com.example.tradeoff.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -134,6 +135,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvDashboardWelcome: TextView
     private lateinit var tvDashboardStatus: TextView
     private lateinit var progressDashboard: ProgressBar
+    private lateinit var layoutDashboardHero: LinearLayout
 
     private lateinit var btnTabMarketplace: Button
     private lateinit var btnTabMyListings: Button
@@ -154,11 +156,18 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var layoutDashboardProfile: LinearLayout
     private lateinit var layoutDashboardSettings: LinearLayout
+    private lateinit var viewDashboardNotifScrim: View
+    private lateinit var layoutDashboardNotificationsPanel: LinearLayout
+    private lateinit var rvDashboardNotifications: RecyclerView
+    private lateinit var tvDashboardNotificationsEmpty: TextView
+    private lateinit var btnDashboardNotificationsClose: Button
+    private lateinit var btnDashboardNotificationsClearAll: Button
 
     private lateinit var tvProfileDisplayName: TextView
     private lateinit var tvProfileFullName: TextView
     private lateinit var tvProfileEmail: TextView
     private lateinit var tvProfileListingCount: TextView
+    private lateinit var dashboardNotificationAdapter: NotificationAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -209,6 +218,7 @@ class MainActivity : AppCompatActivity() {
         tvDashboardWelcome = findViewById(R.id.tvDashboardWelcome)
         tvDashboardStatus = findViewById(R.id.tvDashboardStatus)
         progressDashboard = findViewById(R.id.progressDashboard)
+        layoutDashboardHero = findViewById(R.id.layoutDashboardHero)
         btnTabMarketplace = findViewById(R.id.btnTabMarketplace)
         btnTabMyListings = findViewById(R.id.btnTabMyListings)
         btnTabProfile = findViewById(R.id.btnTabProfile)
@@ -227,6 +237,12 @@ class MainActivity : AppCompatActivity() {
         layoutDashboardListHeader = findViewById(R.id.layoutDashboardListHeader)
         layoutDashboardProfile = findViewById(R.id.layoutDashboardProfile)
         layoutDashboardSettings = findViewById(R.id.layoutDashboardSettings)
+        viewDashboardNotifScrim = findViewById(R.id.viewDashboardNotifScrim)
+        layoutDashboardNotificationsPanel = findViewById(R.id.layoutDashboardNotificationsPanel)
+        rvDashboardNotifications = findViewById(R.id.rvDashboardNotifications)
+        tvDashboardNotificationsEmpty = findViewById(R.id.tvDashboardNotificationsEmpty)
+        btnDashboardNotificationsClose = findViewById(R.id.btnDashboardNotificationsClose)
+        btnDashboardNotificationsClearAll = findViewById(R.id.btnDashboardNotificationsClearAll)
         tvProfileDisplayName = findViewById(R.id.tvProfileDisplayName)
         tvProfileFullName = findViewById(R.id.tvProfileFullName)
         tvProfileEmail = findViewById(R.id.tvProfileEmail)
@@ -249,6 +265,18 @@ class MainActivity : AppCompatActivity() {
         rvDashboardItems.adapter = dashboardAdapter
         rvDashboardItems.isNestedScrollingEnabled = false
         rvDashboardItems.setHasFixedSize(false)
+
+        dashboardNotificationAdapter = NotificationAdapter { item ->
+            hideNotificationsPanel()
+            showChatDialog(
+                receiverEmail = item.contactEmail,
+                receiverName = item.contactName,
+                messageChannel = item.channel,
+                transactionId = item.transactionId
+            )
+        }
+        rvDashboardNotifications.layoutManager = LinearLayoutManager(this)
+        rvDashboardNotifications.adapter = dashboardNotificationAdapter
     }
 
     private fun setupDashboardSpinners() {
@@ -339,9 +367,19 @@ class MainActivity : AppCompatActivity() {
             showListingFormDialog(null)
         }
         btnDashboardNotifications.setOnClickListener {
-            showNotificationsDialog()
+            toggleNotificationsPanel()
+        }
+        btnDashboardNotificationsClose.setOnClickListener {
+            hideNotificationsPanel()
+        }
+        btnDashboardNotificationsClearAll.setOnClickListener {
+            clearNotifications()
+        }
+        viewDashboardNotifScrim.setOnClickListener {
+            hideNotificationsPanel()
         }
         btnDashboardChat.setOnClickListener {
+            hideNotificationsPanel()
             showChatContactPicker()
         }
     }
@@ -610,7 +648,7 @@ class MainActivity : AppCompatActivity() {
             error(R.drawable.bg_listing_image_placeholder)
             crossfade(true)
         }
-        tvDetailPrice.text = getString(R.string.item_price, String.format(Locale.US, "%.2f", item.price))
+        tvDetailPrice.text = getString(R.string.item_price, PriceFormatter.format(item.price))
         tvDetailTitle.text = title
         tvDetailMeta.text = getString(R.string.listing_meta_detail, category, condition, location)
         tvDetailSeller.text = getString(R.string.listing_seller_label, sellerName)
@@ -742,7 +780,7 @@ class MainActivity : AppCompatActivity() {
         if (editingItem != null) {
             etFormTitle.setText(editingItem.title.orEmpty())
             etFormDescription.setText(editingItem.description.orEmpty())
-            etFormPrice.setText(if (editingItem.price > 0) editingItem.price.toString() else "")
+            etFormPrice.setText(if (editingItem.price > 0) PriceFormatter.format(editingItem.price) else "")
             etFormLocation.setText(editingItem.location.orEmpty())
             setSpinnerSelection(spFormCategory, editingItem.category)
             setSpinnerSelection(spFormCondition, editingItem.condition)
@@ -789,7 +827,7 @@ class MainActivity : AppCompatActivity() {
                 val category = spFormCategory.selectedItem?.toString().orEmpty()
                 val condition = spFormCondition.selectedItem?.toString().orEmpty()
                 val location = etFormLocation.text.toString().trim()
-                val price = priceText.toDoubleOrNull()
+                val price = PriceFormatter.parse(priceText)
 
                 if (
                     title.isBlank() ||
@@ -1067,6 +1105,7 @@ class MainActivity : AppCompatActivity() {
                 unreadChatCount = snapshot.unreadChatCount,
                 bellUnreadCount = snapshot.unreadBellCount
             )
+            renderNotificationsPanel()
             inboxAdapter.submitThreads(snapshot.threads)
             tvInboxEmpty.isVisible = snapshot.threads.isEmpty()
             rvInboxThreads.isVisible = snapshot.threads.isNotEmpty()
@@ -1263,13 +1302,22 @@ class MainActivity : AppCompatActivity() {
                     unreadChatCount = snapshot.unreadChatCount,
                     bellUnreadCount = snapshot.unreadBellCount
                 )
+                renderNotificationsPanel()
             } finally {
                 isRefreshingInboxMetadata = false
             }
         }
     }
 
-    private fun showNotificationsDialog() {
+    private fun toggleNotificationsPanel() {
+        if (layoutDashboardNotificationsPanel.isVisible) {
+            hideNotificationsPanel()
+        } else {
+            showNotificationsPanel()
+        }
+    }
+
+    private fun showNotificationsPanel() {
         if (!sessionManager.isLoggedIn()) {
             Toast.makeText(this, getString(R.string.auth_required), Toast.LENGTH_SHORT).show()
             showLogin()
@@ -1280,49 +1328,33 @@ class MainActivity : AppCompatActivity() {
         if (currentEmail.isBlank()) return
         setNotificationsOpenedNow(currentEmail)
         updateNotificationBadges(unreadChatCount = unreadChatBadgeCount, bellUnreadCount = 0)
+        renderNotificationsPanel()
+        viewDashboardNotifScrim.isVisible = true
+        layoutDashboardNotificationsPanel.isVisible = true
+    }
 
-        val view = layoutInflater.inflate(R.layout.dialog_notifications, null)
-        val rvNotifications = view.findViewById<RecyclerView>(R.id.rvNotifications)
-        val tvNotificationsEmpty = view.findViewById<TextView>(R.id.tvNotificationsEmpty)
-        val btnNotificationsClose = view.findViewById<Button>(R.id.btnNotificationsClose)
-        val btnNotificationsClearAll = view.findViewById<Button>(R.id.btnNotificationsClearAll)
+    private fun hideNotificationsPanel() {
+        viewDashboardNotifScrim.isVisible = false
+        layoutDashboardNotificationsPanel.isVisible = false
+    }
 
-        var dialog: AlertDialog? = null
-        val adapter = NotificationAdapter { item ->
-            dialog?.dismiss()
-            showChatDialog(
-                receiverEmail = item.contactEmail,
-                receiverName = item.contactName,
-                messageChannel = item.channel,
-                transactionId = item.transactionId
-            )
-        }
-        rvNotifications.layoutManager = LinearLayoutManager(this)
-        rvNotifications.adapter = adapter
-        adapter.submitItems(notificationItems)
-        tvNotificationsEmpty.isVisible = notificationItems.isEmpty()
-        rvNotifications.isVisible = notificationItems.isNotEmpty()
+    private fun renderNotificationsPanel() {
+        dashboardNotificationAdapter.submitItems(notificationItems)
+        tvDashboardNotificationsEmpty.isVisible = notificationItems.isEmpty()
+        rvDashboardNotifications.isVisible = notificationItems.isNotEmpty()
+    }
 
-        dialog = AlertDialog.Builder(this)
-            .setView(view)
-            .create()
-        dialog.setOnShowListener {
-            dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        }
-        btnNotificationsClose.setOnClickListener {
-            dialog.dismiss()
-        }
-        btnNotificationsClearAll.setOnClickListener {
-            setNotificationsClearedNow(currentEmail)
-            setNotificationsOpenedNow(currentEmail)
-            notificationItems.clear()
-            adapter.submitItems(emptyList())
-            tvNotificationsEmpty.isVisible = true
-            rvNotifications.isVisible = false
-            updateNotificationBadges(unreadChatCount = unreadChatBadgeCount, bellUnreadCount = 0)
-            refreshInboxMetadataInBackground(force = true)
-        }
-        dialog.show()
+    private fun clearNotifications() {
+        if (!sessionManager.isLoggedIn()) return
+
+        val currentEmail = normalizeEmail(sessionManager.getUserProfile().email)
+        if (currentEmail.isBlank()) return
+        setNotificationsClearedNow(currentEmail)
+        setNotificationsOpenedNow(currentEmail)
+        notificationItems.clear()
+        renderNotificationsPanel()
+        updateNotificationBadges(unreadChatCount = unreadChatBadgeCount, bellUnreadCount = 0)
+        refreshInboxMetadataInBackground(force = true)
     }
 
     private fun updateNotificationBadges(unreadChatCount: Int, bellUnreadCount: Int) {
@@ -1764,6 +1796,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showLanding() {
+        hideNotificationsPanel()
         layoutLanding.visibility = View.VISIBLE
         layoutLogin.visibility = View.GONE
         layoutRegister.visibility = View.GONE
@@ -1777,6 +1810,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showLogin() {
+        hideNotificationsPanel()
         layoutLanding.visibility = View.GONE
         layoutLogin.visibility = View.VISIBLE
         layoutRegister.visibility = View.GONE
@@ -1787,6 +1821,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showRegister() {
+        hideNotificationsPanel()
         layoutLanding.visibility = View.GONE
         layoutLogin.visibility = View.GONE
         layoutRegister.visibility = View.VISIBLE
@@ -1802,6 +1837,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        hideNotificationsPanel()
         layoutLanding.visibility = View.GONE
         layoutLogin.visibility = View.GONE
         layoutRegister.visibility = View.GONE
@@ -1825,7 +1861,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showMarketplace() {
+        hideNotificationsPanel()
         currentTab = DashboardTab.MARKETPLACE
+        layoutDashboardHero.visibility = View.VISIBLE
         rvDashboardItems.visibility = View.VISIBLE
         layoutDashboardFilters.visibility = View.VISIBLE
         layoutDashboardListHeader.visibility = View.VISIBLE
@@ -1836,7 +1874,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showMyListings() {
+        hideNotificationsPanel()
         currentTab = DashboardTab.MY_LISTINGS
+        layoutDashboardHero.visibility = View.GONE
+        etDashboardSearch.text?.clear()
         rvDashboardItems.visibility = View.VISIBLE
         layoutDashboardFilters.visibility = View.VISIBLE
         layoutDashboardListHeader.visibility = View.VISIBLE
@@ -1847,7 +1888,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showProfile() {
+        hideNotificationsPanel()
         currentTab = DashboardTab.PROFILE
+        layoutDashboardHero.visibility = View.GONE
+        etDashboardSearch.text?.clear()
         rvDashboardItems.visibility = View.GONE
         layoutDashboardFilters.visibility = View.GONE
         layoutDashboardListHeader.visibility = View.GONE
@@ -1859,7 +1903,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showSettings() {
+        hideNotificationsPanel()
         currentTab = DashboardTab.SETTINGS
+        layoutDashboardHero.visibility = View.GONE
+        etDashboardSearch.text?.clear()
         rvDashboardItems.visibility = View.GONE
         layoutDashboardFilters.visibility = View.GONE
         layoutDashboardListHeader.visibility = View.GONE
@@ -1910,6 +1957,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun logout() {
         sessionManager.clear()
+        hideNotificationsPanel()
         notificationItems.clear()
         unreadChatBadgeCount = 0
         updateNotificationBadges(unreadChatCount = 0, bellUnreadCount = 0)
@@ -1921,6 +1969,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleBackNavigation(): Boolean {
         return when {
+            layoutDashboardNotificationsPanel.isVisible -> {
+                hideNotificationsPanel()
+                true
+            }
             layoutDashboard.isVisible && currentTab != DashboardTab.MARKETPLACE -> {
                 showMarketplace()
                 true

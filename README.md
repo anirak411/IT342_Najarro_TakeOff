@@ -69,8 +69,8 @@ mvn spring-boot:run
 Backend runs on `http://localhost:8080`.
 
 For Supabase instead of local Postgres, set:
-- `SPRING_DATASOURCE_URL=jdbc:postgresql://db.sxzdsgtjkfnzeedgbqhb.supabase.co:5432/postgres?sslmode=require`
-- `SPRING_DATASOURCE_USERNAME=postgres`
+- `SPRING_DATASOURCE_URL=jdbc:postgresql://aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require`
+- `SPRING_DATASOURCE_USERNAME=postgres.sxzdsgtjkfnzeedgbqhb`
 - `SPRING_DATASOURCE_PASSWORD=<your-supabase-db-password>`
 
 3. Web:
