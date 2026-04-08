@@ -4,7 +4,7 @@ import com.cloudinary.Cloudinary;
 import com.it342.backend.model.Item;
 import com.it342.backend.model.UserRole;
 import com.it342.backend.repository.ItemRepository;
-import com.it342.backend.repository.UserRepository;
+import com.it342.backend.security.SessionService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,16 +21,16 @@ public class ItemController {
 
     private final ItemRepository itemRepository;
     private final Cloudinary cloudinary;
-    private final UserRepository userRepository;
+    private final SessionService sessionService;
 
     public ItemController(
             ItemRepository itemRepository,
             Cloudinary cloudinary,
-            UserRepository userRepository
+            SessionService sessionService
     ) {
         this.itemRepository = itemRepository;
         this.cloudinary = cloudinary;
-        this.userRepository = userRepository;
+        this.sessionService = sessionService;
     }
 
     @GetMapping
@@ -194,7 +194,7 @@ public class ItemController {
             @PathVariable Long id,
             @RequestParam String sellerEmail,
             @RequestParam(required = false) String sellerName,
-            @RequestParam(required = false) String adminEmail
+            @RequestHeader(value = "X-Session-Token", required = false) String sessionToken
     ) {
         Item existing = itemRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
@@ -213,10 +213,7 @@ public class ItemController {
                 existing.getSellerName() != null &&
                 sellerName.equalsIgnoreCase(existing.getSellerName());
 
-        boolean deletedByAdmin =
-                adminEmail != null &&
-                !adminEmail.isBlank() &&
-                userRepository.findByEmail(adminEmail.trim())
+        boolean deletedByAdmin = sessionService.resolveUser(sessionToken)
                         .map(user -> user.getRole() == UserRole.ADMIN)
                         .orElse(false);
 

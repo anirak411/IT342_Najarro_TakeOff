@@ -19,3 +19,15 @@ export const getCurrentEmail = () => {
 export const isAuthenticated = () => Boolean(getCurrentEmail());
 
 export const isAdminUser = () => getCurrentRole() === "ADMIN";
+
+export const getSessionToken = () =>
+    (localStorage.getItem("sessionToken") || "").trim();
+
+export const clearSessionStorage = () => {
+    localStorage.removeItem("sessionToken");
+    localStorage.removeItem("user");
+    localStorage.removeItem("displayName");
+    localStorage.removeItem("fullName");
+    localStorage.removeItem("email");
+    localStorage.removeItem("role");
+};

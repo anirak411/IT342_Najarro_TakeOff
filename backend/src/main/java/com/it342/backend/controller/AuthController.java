@@ -1,12 +1,13 @@
 package com.it342.backend.controller;
 
 import com.it342.backend.dto.ApiResponse;
+import com.it342.backend.dto.AuthSessionResponse;
 import com.it342.backend.dto.LoginRequest;
 import com.it342.backend.dto.RegisterRequest;
-import com.it342.backend.dto.UserProfileResponse;
 import com.it342.backend.model.User;
 import com.it342.backend.model.UserRole;
 import com.it342.backend.repository.UserRepository;
+import com.it342.backend.security.SessionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,10 +22,12 @@ import java.util.Locale;
 public class AuthController {
 
     private final UserRepository userRepository;
+    private final SessionService sessionService;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    public AuthController(UserRepository userRepository) {
+    public AuthController(UserRepository userRepository, SessionService sessionService) {
         this.userRepository = userRepository;
+        this.sessionService = sessionService;
     }
 
     @PostMapping("/register")
@@ -107,15 +110,8 @@ public class AuthController {
             userRepository.save(user);
         }
 
-        UserProfileResponse profile =
-                new UserProfileResponse(
-                        user.getDisplayName(),
-                        user.getFullName(),
-                        user.getEmail(),
-                        user.getProfilePicUrl(),
-                        user.getCoverPicUrl(),
-                        user.getRole().name()
-                );
+        String sessionToken = sessionService.createSession(user);
+        AuthSessionResponse profile = buildAuthSessionResponse(user, sessionToken);
 
         return ResponseEntity.ok(
                 new ApiResponse(true, "Login successful!", profile)
@@ -165,25 +161,33 @@ public class AuthController {
         user.setRole(UserRole.ADMIN);
         userRepository.save(user);
 
-        UserProfileResponse profile =
-                new UserProfileResponse(
-                        user.getDisplayName(),
-                        user.getFullName(),
-                        user.getEmail(),
-                        user.getProfilePicUrl(),
-                        user.getCoverPicUrl(),
-                        user.getRole().name()
-                );
+        String sessionToken = sessionService.createSession(user);
+        AuthSessionResponse profile = buildAuthSessionResponse(user, sessionToken);
 
         return ResponseEntity.ok(
                 new ApiResponse(true, "Admin role granted.", profile)
         );
     }
 
+    @GetMapping("/session")
+    public ResponseEntity<ApiResponse> getSession(
+            @RequestHeader(value = "X-Session-Token", required = false) String sessionToken
+    ) {
+        User user = sessionService.requireUser(sessionToken);
+        return ResponseEntity.ok(
+                new ApiResponse(
+                        true,
+                        "Session active.",
+                        buildAuthSessionResponse(user, sessionToken == null ? "" : sessionToken.trim())
+                )
+        );
+    }
+
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse> logout() {
-        // Current session handling is client-side. This endpoint exists
-        // to complete the API contract until JWT token revocation is added.
+    public ResponseEntity<ApiResponse> logout(
+            @RequestHeader(value = "X-Session-Token", required = false) String sessionToken
+    ) {
+        sessionService.revoke(sessionToken);
         return ResponseEntity.ok(
                 new ApiResponse(true, "Logout successful.")
         );
@@ -219,5 +223,17 @@ public class AuthController {
 
     private boolean isBcryptHash(String value) {
         return value != null && (value.startsWith("$2a$") || value.startsWith("$2b$") || value.startsWith("$2y$"));
+    }
+
+    private AuthSessionResponse buildAuthSessionResponse(User user, String sessionToken) {
+        return new AuthSessionResponse(
+                user.getDisplayName(),
+                user.getFullName(),
+                user.getEmail(),
+                user.getProfilePicUrl(),
+                user.getCoverPicUrl(),
+                user.getRole().name(),
+                sessionToken
+        );
     }
 }

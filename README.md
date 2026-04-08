@@ -60,18 +60,19 @@ cd IT342_G5_Najarro_Lab1
 2. Backend:
 ```bash
 cd backend
-export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/tradeoff
-export SPRING_DATASOURCE_USERNAME=postgres
-export SPRING_DATASOURCE_PASSWORD=postgres
+# Optional: online database (Supabase/PostgreSQL)
+export SPRING_DATASOURCE_URL=jdbc:postgresql://aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require
+export SPRING_DATASOURCE_USERNAME=postgres.<your-project-ref>
+export SPRING_DATASOURCE_PASSWORD=<your-db-password>
 mvn clean install
 mvn spring-boot:run
 ```
 Backend runs on `http://localhost:8080`.
 
-For Supabase instead of local Postgres, set:
-- `SPRING_DATASOURCE_URL=jdbc:postgresql://aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require`
-- `SPRING_DATASOURCE_USERNAME=postgres.sxzdsgtjkfnzeedgbqhb`
-- `SPRING_DATASOURCE_PASSWORD=<your-supabase-db-password>`
+Database behavior is automatic:
+- If online PostgreSQL is reachable, backend uses it.
+- If it is unreachable (no internet), backend falls back to a local file database (`H2`) with no manual switching.
+- Offline DB path can be customized with `APP_DATASOURCE_OFFLINE_URL`.
 
 3. Web:
 ```bash

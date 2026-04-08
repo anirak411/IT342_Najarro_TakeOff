@@ -536,6 +536,7 @@ function Dashboard() {
                                 <button
                                     className="logout-option"
                                     onClick={() => {
+                                        localStorage.removeItem("sessionToken");
                                         localStorage.removeItem("user");
                                         localStorage.removeItem("displayName");
                                         localStorage.removeItem("fullName");

@@ -29,6 +29,27 @@
     margin-bottom: 14px;
 }
 
+.admin-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.admin-security-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    background: rgba(219, 234, 254, 0.75);
+    color: #1e3a8a;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
 .admin-title {
     font-size: 30px;
     letter-spacing: -0.04em;
@@ -130,5 +151,10 @@
     .admin-header {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .admin-header-actions {
+        width: 100%;
+        justify-content: flex-start;
     }
 }

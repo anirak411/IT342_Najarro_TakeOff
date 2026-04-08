@@ -18,13 +18,14 @@ import AdminOverview from "./pages/admin/AdminOverview.jsx";
 import AdminTransactions from "./pages/admin/AdminTransactions.jsx";
 import AdminListings from "./pages/admin/AdminListings.jsx";
 import AdminUsers from "./pages/admin/AdminUsers.jsx";
-import { isAdminUser, isAuthenticated } from "./utils/session";
+import { getSessionToken, isAdminUser, isAuthenticated } from "./utils/session";
 
 function App() {
     const location = useLocation();
     const storedUser = localStorage.getItem("user");
     const authed = isAuthenticated();
     const admin = isAdminUser();
+    const hasSessionToken = Boolean(getSessionToken());
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const hideChatOn = ["/landing", "/login", "/register"];
     const showChat = Boolean(storedUser) && !hideChatOn.includes(location.pathname);
@@ -37,7 +38,7 @@ function App() {
 
     const RequireAdmin = ({ children }) => {
         if (!authed) return <Navigate to="/login" replace />;
-        if (!admin) return <Navigate to="/dashboard" replace />;
+        if (!admin || !hasSessionToken) return <Navigate to="/dashboard" replace />;
         return children;
     };
 

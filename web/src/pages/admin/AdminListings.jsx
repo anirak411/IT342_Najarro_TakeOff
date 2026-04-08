@@ -1,9 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { getCurrentEmail } from "../../utils/session";
 
 function AdminListings() {
-    const adminEmail = useMemo(() => getCurrentEmail(), []);
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -29,9 +27,8 @@ function AdminListings() {
         try {
             await axios.delete(`http://localhost:8080/api/items/${item.id}`, {
                 params: {
-                    sellerEmail: item.sellerEmail || adminEmail,
+                    sellerEmail: item.sellerEmail || "",
                     sellerName: item.sellerName || "",
-                    adminEmail,
                 },
             });
             await fetchItems();
@@ -50,6 +47,17 @@ function AdminListings() {
             maximumFractionDigits: 2,
         });
 
+    const formatDate = (value) => {
+        if (!value) return "Unknown date";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "Unknown date";
+        return date.toLocaleDateString("en-PH", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        });
+    };
+
     return (
         <div className="admin-stack">
             <div className="admin-card">
@@ -65,10 +73,33 @@ function AdminListings() {
                 <div className="admin-grid">
                     {items.map((item) => (
                         <div className="admin-card" key={item.id}>
-                            <h3>{item.title}</h3>
-                            <p>Seller: {item.sellerName || item.sellerEmail}</p>
-                            <p>Price: ₱{formatMoney(item.price)}</p>
-                            <p>Category: {item.category || "N/A"}</p>
+                            <div className="admin-listing-media">
+                                {item.imageUrl ? (
+                                    <img
+                                        className="admin-listing-image"
+                                        src={item.imageUrl}
+                                        alt={`${item.title || "Listing"} photo`}
+                                        loading="lazy"
+                                    />
+                                ) : (
+                                    <div className="admin-listing-fallback">
+                                        <span>{(item.title || "Listing").charAt(0).toUpperCase()}</span>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="admin-listing-body">
+                                <h3>{item.title || "Untitled Listing"}</h3>
+                                <p className="admin-listing-price">₱{formatMoney(item.price)}</p>
+                                <p className="admin-listing-meta">
+                                    Seller: {item.sellerName || item.sellerEmail || "Unknown"}
+                                </p>
+                                <p className="admin-listing-meta">
+                                    Category: {item.category || "N/A"} | Condition: {item.condition || "N/A"}
+                                </p>
+                                <p className="admin-listing-meta">
+                                    Location: {item.location || "N/A"} | Posted: {formatDate(item.createdAt)}
+                                </p>
+                            </div>
                             <button
                                 className="apple-btn danger"
                                 onClick={() => deleteListing(item)}
