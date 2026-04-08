@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "../css/settings.css";
 import BackButton from "../components/BackButton";
+import { clearSessionStorage } from "../utils/session";
 
 function Settings() {
     const navigate = useNavigate();
@@ -61,9 +62,15 @@ function Settings() {
                 ...currentUser,
                 role: res.data?.data?.role || "ADMIN",
             };
+            const sessionToken = (res.data?.data?.sessionToken || "").trim();
 
             localStorage.setItem("user", JSON.stringify(nextUser));
             localStorage.setItem("role", nextUser.role);
+            if (sessionToken) {
+                localStorage.setItem("sessionToken", sessionToken);
+            } else {
+                localStorage.removeItem("sessionToken");
+            }
             alert("Admin role granted. You can now access the Admin Panel.");
             navigate("/admin");
         } catch (err) {
@@ -83,11 +90,7 @@ function Settings() {
         } catch {
             // local logout fallback
         }
-        localStorage.removeItem("user");
-        localStorage.removeItem("displayName");
-        localStorage.removeItem("fullName");
-        localStorage.removeItem("email");
-        localStorage.removeItem("role");
+        clearSessionStorage();
         navigate("/login");
     };
 

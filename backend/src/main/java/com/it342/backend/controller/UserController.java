@@ -5,6 +5,7 @@ import com.it342.backend.dto.UserSummaryResponse;
 import com.it342.backend.model.User;
 import com.it342.backend.model.UserRole;
 import com.it342.backend.repository.UserRepository;
+import com.it342.backend.security.SessionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,13 +21,26 @@ import java.util.Optional;
 public class UserController {
 
     private final UserRepository userRepository;
+    private final SessionService sessionService;
 
-    public UserController(UserRepository userRepository) {
+    public UserController(UserRepository userRepository, SessionService sessionService) {
         this.userRepository = userRepository;
+        this.sessionService = sessionService;
     }
 
     @GetMapping
     public List<UserSummaryResponse> getAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(this::toSummary)
+                .toList();
+    }
+
+    @GetMapping("/admin")
+    public List<UserSummaryResponse> getAllUsersForAdmin(
+            @RequestHeader(value = "X-Session-Token", required = false) String sessionToken
+    ) {
+        sessionService.requireAdminUser(sessionToken);
         return userRepository.findAll()
                 .stream()
                 .map(this::toSummary)
@@ -69,19 +83,10 @@ public class UserController {
     @PutMapping("/{id}/role")
     public UserSummaryResponse updateUserRole(
             @PathVariable Long id,
+            @RequestHeader(value = "X-Session-Token", required = false) String sessionToken,
             @RequestBody UpdateUserRoleRequest request
     ) {
-        String adminEmail = normalizeEmail(request.getAdminEmail());
-        if (adminEmail.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "adminEmail is required");
-        }
-
-        User adminUser = userRepository.findByEmailIgnoreCase(adminEmail)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Admin user not found"));
-
-        if (adminUser.getRole() != UserRole.ADMIN) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin role required");
-        }
+        sessionService.requireAdminUser(sessionToken);
 
         UserRole nextRole = parseRole(request.getRole());
 
@@ -112,10 +117,6 @@ public class UserController {
                 user.getCoverPicUrl(),
                 user.getRole().name()
         );
-    }
-
-    private String normalizeEmail(String email) {
-        return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
     }
 
     private UserRole parseRole(String role) {

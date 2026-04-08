@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/sidebar.css";
+import { clearSessionStorage } from "../utils/session";
 
 function Sidebar({ isOpen, onToggle }) {
     const navigate = useNavigate();
@@ -18,11 +19,7 @@ function Sidebar({ isOpen, onToggle }) {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem("user");
-        localStorage.removeItem("displayName");
-        localStorage.removeItem("fullName");
-        localStorage.removeItem("email");
-        localStorage.removeItem("role");
+        clearSessionStorage();
         navigate("/login");
         if (onToggle) onToggle();
     };

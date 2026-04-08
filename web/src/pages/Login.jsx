@@ -18,6 +18,8 @@ function Login() {
             });
 
             if (res.data.success) {
+                const sessionToken = (res.data?.data?.sessionToken || "").trim();
+
                 localStorage.setItem(
                     "user",
                     JSON.stringify({
@@ -33,6 +35,11 @@ function Login() {
                 localStorage.setItem("fullName", res.data.data.fullName);
                 localStorage.setItem("email", res.data.data.email);
                 localStorage.setItem("role", res.data.data.role || "USER");
+                if (sessionToken) {
+                    localStorage.setItem("sessionToken", sessionToken);
+                } else {
+                    localStorage.removeItem("sessionToken");
+                }
 
                 const nextRole = (res.data?.data?.role || "USER").toUpperCase();
                 navigate(nextRole === "ADMIN" ? "/admin" : "/dashboard");

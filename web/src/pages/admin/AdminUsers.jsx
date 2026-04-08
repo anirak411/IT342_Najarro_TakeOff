@@ -11,7 +11,7 @@ function AdminUsers() {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            const res = await axios.get("http://localhost:8080/api/users");
+            const res = await axios.get("http://localhost:8080/api/users/admin");
             setUsers(Array.isArray(res.data) ? res.data : []);
         } catch {
             setUsers([]);
@@ -27,7 +27,6 @@ function AdminUsers() {
     const updateRole = async (userId, role) => {
         try {
             await axios.put(`http://localhost:8080/api/users/${userId}/role`, {
-                adminEmail,
                 role,
             });
             await fetchUsers();

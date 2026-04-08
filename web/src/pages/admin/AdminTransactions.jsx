@@ -1,19 +1,14 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { getCurrentEmail } from "../../utils/session";
 
 function AdminTransactions() {
-    const adminEmail = useMemo(() => getCurrentEmail(), []);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const fetchTransactions = async () => {
-        if (!adminEmail) return;
         setLoading(true);
         try {
-            const res = await axios.get("http://localhost:8080/api/transactions", {
-                params: { adminEmail },
-            });
+            const res = await axios.get("http://localhost:8080/api/transactions");
             setTransactions(Array.isArray(res.data) ? res.data : []);
         } catch {
             setTransactions([]);
@@ -24,13 +19,11 @@ function AdminTransactions() {
 
     useEffect(() => {
         fetchTransactions();
-    }, [adminEmail]);
+    }, []);
 
     const callAdminAction = async (id, action) => {
         try {
-            await axios.put(`http://localhost:8080/api/transactions/${id}/${action}`, {
-                adminEmail,
-            });
+            await axios.put(`http://localhost:8080/api/transactions/${id}/${action}`, {});
             await fetchTransactions();
         } catch (err) {
             const msg =

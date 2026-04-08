@@ -1,16 +1,14 @@
 package com.it342.backend.controller;
 
-import com.it342.backend.dto.AdminActionRequest;
 import com.it342.backend.dto.BuyerActionRequest;
 import com.it342.backend.dto.CreateTransactionRequest;
 import com.it342.backend.model.EscrowTransaction;
 import com.it342.backend.model.Item;
 import com.it342.backend.model.TransactionStatus;
 import com.it342.backend.model.User;
-import com.it342.backend.model.UserRole;
 import com.it342.backend.repository.EscrowTransactionRepository;
 import com.it342.backend.repository.ItemRepository;
-import com.it342.backend.repository.UserRepository;
+import com.it342.backend.security.SessionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -25,16 +23,16 @@ public class TransactionController {
 
     private final EscrowTransactionRepository transactionRepository;
     private final ItemRepository itemRepository;
-    private final UserRepository userRepository;
+    private final SessionService sessionService;
 
     public TransactionController(
             EscrowTransactionRepository transactionRepository,
             ItemRepository itemRepository,
-            UserRepository userRepository
+            SessionService sessionService
     ) {
         this.transactionRepository = transactionRepository;
         this.itemRepository = itemRepository;
-        this.userRepository = userRepository;
+        this.sessionService = sessionService;
     }
 
     @PostMapping
@@ -98,20 +96,12 @@ public class TransactionController {
     @GetMapping
     public List<EscrowTransaction> getTransactions(
             @RequestParam(required = false) String email,
-            @RequestParam(required = false) String adminEmail
+            @RequestHeader(value = "X-Session-Token", required = false) String sessionToken
     ) {
-        String normalizedAdminEmail = normalize(adminEmail);
-        if (!normalizedAdminEmail.isBlank()) {
-            requireAdmin(normalizedAdminEmail);
-            return transactionRepository.findAllByOrderByCreatedAtDesc();
-        }
-
         String normalizedEmail = normalize(email);
         if (normalizedEmail.isBlank()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Provide either email or adminEmail"
-            );
+            sessionService.requireAdminUser(sessionToken);
+            return transactionRepository.findAllByOrderByCreatedAtDesc();
         }
 
         return transactionRepository.findByBuyerEmailIgnoreCaseOrSellerEmailIgnoreCaseOrderByCreatedAtDesc(
@@ -123,16 +113,15 @@ public class TransactionController {
     @PutMapping("/{id}/hold")
     public EscrowTransaction holdPayment(
             @PathVariable Long id,
-            @RequestBody AdminActionRequest request
+            @RequestHeader(value = "X-Session-Token", required = false) String sessionToken
     ) {
-        String adminEmail = normalize(request.getAdminEmail());
-        requireAdmin(adminEmail);
+        User admin = sessionService.requireAdminUser(sessionToken);
 
         EscrowTransaction tx = findById(id);
         ensureStatus(tx, TransactionStatus.PENDING, "Only pending transactions can be held");
 
         tx.setStatus(TransactionStatus.PAYMENT_HELD);
-        tx.setAdminEmail(adminEmail);
+        tx.setAdminEmail(admin.getEmail());
         return transactionRepository.save(tx);
     }
 
@@ -160,10 +149,9 @@ public class TransactionController {
     @PutMapping("/{id}/complete")
     public EscrowTransaction completeTransaction(
             @PathVariable Long id,
-            @RequestBody AdminActionRequest request
+            @RequestHeader(value = "X-Session-Token", required = false) String sessionToken
     ) {
-        String adminEmail = normalize(request.getAdminEmail());
-        requireAdmin(adminEmail);
+        User admin = sessionService.requireAdminUser(sessionToken);
 
         EscrowTransaction tx = findById(id);
         ensureStatus(
@@ -173,7 +161,7 @@ public class TransactionController {
         );
 
         tx.setStatus(TransactionStatus.COMPLETED);
-        tx.setAdminEmail(adminEmail);
+        tx.setAdminEmail(admin.getEmail());
         tx.setCompletedAt(LocalDateTime.now());
         return transactionRepository.save(tx);
     }
@@ -181,10 +169,9 @@ public class TransactionController {
     @PutMapping("/{id}/refund")
     public EscrowTransaction refundTransaction(
             @PathVariable Long id,
-            @RequestBody AdminActionRequest request
+            @RequestHeader(value = "X-Session-Token", required = false) String sessionToken
     ) {
-        String adminEmail = normalize(request.getAdminEmail());
-        requireAdmin(adminEmail);
+        User admin = sessionService.requireAdminUser(sessionToken);
 
         EscrowTransaction tx = findById(id);
         if (tx.getStatus() != TransactionStatus.PAYMENT_HELD
@@ -196,7 +183,7 @@ public class TransactionController {
         }
 
         tx.setStatus(TransactionStatus.REFUNDED);
-        tx.setAdminEmail(adminEmail);
+        tx.setAdminEmail(admin.getEmail());
         tx.setRefundedAt(LocalDateTime.now());
         return transactionRepository.save(tx);
     }
@@ -209,19 +196,6 @@ public class TransactionController {
     private void ensureStatus(EscrowTransaction tx, TransactionStatus expected, String message) {
         if (tx.getStatus() != expected) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
-        }
-    }
-
-    private void requireAdmin(String adminEmail) {
-        if (adminEmail.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "adminEmail is required");
-        }
-
-        User user = userRepository.findByEmail(adminEmail)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Admin user not found"));
-
-        if (user.getRole() != UserRole.ADMIN) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin role required");
         }
     }
 
