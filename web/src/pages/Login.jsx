@@ -108,11 +108,6 @@ function Login() {
                 </div>
 
                 <div className="auth-right">
-                    <img
-                        src="/src/images/roblox.png"
-                        alt="Marketplace"
-                        className="auth-illustration"
-                    />
                 </div>
             </div>
         </div>
