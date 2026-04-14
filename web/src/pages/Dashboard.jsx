@@ -470,7 +470,7 @@ function Dashboard() {
                         </button>
 
                         {notifOpen && (
-                            <div className="dropdown-menu">
+                            <div className="dropdown-menu notif-menu">
                                 <p className="dropdown-title">
                                     Notifications
                                 </p>
@@ -520,7 +520,11 @@ function Dashboard() {
                         </button>
 
                         {profileOpen && (
-                            <div className="dropdown-menu">
+                            <div className="dropdown-menu profile-menu">
+                                <div className="dropdown-user">
+                                    <p className="dropdown-user-name">{displayName}</p>
+                                    <p className="dropdown-user-email">{currentUser.email || "No email set"}</p>
+                                </div>
                                 <button
                                     onClick={() => navigate("/profile")}
                                 >

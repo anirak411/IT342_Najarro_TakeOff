@@ -9,6 +9,7 @@ import { isItemOwnedByUser } from "../utils/ownership";
 
 function Profile() {
     const navigate = useNavigate();
+
     const cropPresets = {
         profile: {
             previewWidth: 260,
@@ -25,6 +26,7 @@ function Profile() {
             shape: "rect",
         },
     };
+
     const formatPrice = (value) =>
         Number(value || 0).toLocaleString("en-PH", {
             minimumFractionDigits: 2,
@@ -35,6 +37,13 @@ function Profile() {
     const [profilePic, setProfilePic] = useState("");
     const [coverPic, setCoverPic] = useState("");
     const [listings, setListings] = useState([]);
+    const [displayNameInput, setDisplayNameInput] = useState("");
+    const [fullNameInput, setFullNameInput] = useState("");
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [isSavingProfile, setIsSavingProfile] = useState(false);
+    const [saveMessage, setSaveMessage] = useState("");
+    const [saveError, setSaveError] = useState("");
+    const usernameRule = /^[A-Za-z0-9_]{8,}$/;
     const [cropModal, setCropModal] = useState({
         open: false,
         type: "profile",
@@ -46,12 +55,54 @@ function Profile() {
         offsetY: 0,
     });
     const [dragging, setDragging] = useState(false);
+
     const dragStartRef = useRef({
         pointerX: 0,
         pointerY: 0,
         offsetX: 0,
         offsetY: 0,
     });
+
+    const getMediaKeys = (userLike) => {
+        const emailKey = (userLike?.email || "").trim().toLowerCase();
+        if (emailKey) {
+            return {
+                profileKey: `profilePic_${emailKey}`,
+                coverKey: `coverPic_${emailKey}`,
+            };
+        }
+
+        const legacyName = (
+            userLike?.displayName ||
+            userLike?.fullName ||
+            ""
+        ).trim();
+        return {
+            profileKey: `profilePic_${legacyName}`,
+            coverKey: `coverPic_${legacyName}`,
+        };
+    };
+
+    const persistUserSession = (nextUser) => {
+        localStorage.setItem(
+            "user",
+            JSON.stringify({
+                displayName: nextUser.displayName,
+                fullName: nextUser.fullName,
+                email: nextUser.email,
+                profilePicUrl: nextUser.profilePicUrl || "",
+                coverPicUrl: nextUser.coverPicUrl || "",
+                role: nextUser.role || localStorage.getItem("role") || "USER",
+            })
+        );
+
+        localStorage.setItem("displayName", nextUser.displayName || "");
+        localStorage.setItem("fullName", nextUser.fullName || "");
+        localStorage.setItem("email", nextUser.email || "");
+        if (nextUser.role) {
+            localStorage.setItem("role", nextUser.role);
+        }
+    };
 
     useEffect(() => {
         let storedUser = null;
@@ -84,19 +135,32 @@ function Profile() {
         }
 
         setUser(storedUser);
+        setDisplayNameInput((storedUser.displayName || "").trim());
+        setFullNameInput((storedUser.fullName || "").trim());
 
-        const profileKey = `profilePic_${storedUser.displayName}`;
-        const coverKey = `coverPic_${storedUser.displayName}`;
+        const { profileKey, coverKey } = getMediaKeys(storedUser);
+        const legacyProfileKey = `profilePic_${storedUser.displayName || ""}`;
+        const legacyCoverKey = `coverPic_${storedUser.displayName || ""}`;
 
-        setProfilePic(localStorage.getItem(profileKey) || "");
-        setCoverPic(localStorage.getItem(coverKey) || "");
+        setProfilePic(
+            localStorage.getItem(profileKey) ||
+                localStorage.getItem(legacyProfileKey) ||
+                storedUser.profilePicUrl ||
+                ""
+        );
+        setCoverPic(
+            localStorage.getItem(coverKey) ||
+                localStorage.getItem(legacyCoverKey) ||
+                storedUser.coverPicUrl ||
+                ""
+        );
     }, [navigate]);
 
     useEffect(() => {
         if (!user) return;
 
-        const fetchUserMedia = async () => {
-            const email = user.email || localStorage.getItem("email") || "";
+        const fetchProfile = async () => {
+            const email = (user.email || localStorage.getItem("email") || "").trim();
             if (!email) return;
 
             try {
@@ -104,40 +168,41 @@ function Profile() {
                     params: { email },
                 });
 
-                const backendProfile = res.data?.profilePicUrl || "";
-                const backendCover = res.data?.coverPicUrl || "";
+                const backendUser = {
+                    ...user,
+                    displayName: res.data?.displayName || user.displayName || "User",
+                    fullName: res.data?.fullName || user.fullName || user.displayName || "",
+                    email: res.data?.email || email,
+                    profilePicUrl: res.data?.profilePicUrl || user.profilePicUrl || "",
+                    coverPicUrl: res.data?.coverPicUrl || user.coverPicUrl || "",
+                    role: res.data?.role || user.role || localStorage.getItem("role") || "USER",
+                };
 
-                const profileKey = `profilePic_${user.displayName}`;
-                const coverKey = `coverPic_${user.displayName}`;
+                setUser(backendUser);
+                setDisplayNameInput((backendUser.displayName || "").trim());
+                setFullNameInput((backendUser.fullName || "").trim());
+                persistUserSession(backendUser);
 
-                if (!localStorage.getItem(profileKey) && backendProfile) {
-                    localStorage.setItem(profileKey, backendProfile);
-                    setProfilePic(backendProfile);
+                const { profileKey, coverKey } = getMediaKeys(backendUser);
+
+                const resolvedProfile =
+                    localStorage.getItem(profileKey) || backendUser.profilePicUrl || "";
+                const resolvedCover =
+                    localStorage.getItem(coverKey) || backendUser.coverPicUrl || "";
+
+                if (resolvedProfile) {
+                    localStorage.setItem(profileKey, resolvedProfile);
+                    setProfilePic(resolvedProfile);
                 }
 
-                if (!localStorage.getItem(coverKey) && backendCover) {
-                    localStorage.setItem(coverKey, backendCover);
-                    setCoverPic(backendCover);
-                }
-
-                if (res.data?.role) {
-                    localStorage.setItem("role", res.data.role);
-                    localStorage.setItem(
-                        "user",
-                        JSON.stringify({
-                            ...user,
-                            profilePicUrl: backendProfile || profilePic,
-                            coverPicUrl: backendCover || coverPic,
-                            role: res.data.role,
-                        })
-                    );
+                if (resolvedCover) {
+                    localStorage.setItem(coverKey, resolvedCover);
+                    setCoverPic(resolvedCover);
                 }
             } catch {
-                // keep local fallback
+                // Keep local fallback
             }
         };
-
-        fetchUserMedia();
 
         const fetchListings = async () => {
             try {
@@ -172,8 +237,40 @@ function Profile() {
             }
         };
 
+        fetchProfile();
         fetchListings();
-    }, [user]);
+    }, [user?.email]);
+
+    useEffect(() => {
+        if (!cropModal.open || !dragging) return;
+
+        const onPointerMove = (e) => {
+            const dx = e.clientX - dragStartRef.current.pointerX;
+            const dy = e.clientY - dragStartRef.current.pointerY;
+            const limits = getOffsetLimits(
+                cropModal.type,
+                cropModal.imgWidth,
+                cropModal.imgHeight,
+                cropModal.zoom
+            );
+
+            setCropModal((prev) => ({
+                ...prev,
+                offsetX: clampOffset(dragStartRef.current.offsetX + dx, limits.maxX),
+                offsetY: clampOffset(dragStartRef.current.offsetY + dy, limits.maxY),
+            }));
+        };
+
+        const onPointerUp = () => setDragging(false);
+
+        window.addEventListener("pointermove", onPointerMove);
+        window.addEventListener("pointerup", onPointerUp);
+
+        return () => {
+            window.removeEventListener("pointermove", onPointerMove);
+            window.removeEventListener("pointerup", onPointerUp);
+        };
+    }, [cropModal, dragging]);
 
     const getOffsetLimits = (type, imgWidth, imgHeight, zoom) => {
         const preset = cropPresets[type];
@@ -194,35 +291,6 @@ function Profile() {
     };
 
     const clampOffset = (value, max) => Math.max(-max, Math.min(max, value));
-
-    useEffect(() => {
-        if (!cropModal.open || !dragging) return;
-
-        const onPointerMove = (e) => {
-            const dx = e.clientX - dragStartRef.current.pointerX;
-            const dy = e.clientY - dragStartRef.current.pointerY;
-            const limits = getOffsetLimits(
-                cropModal.type,
-                cropModal.imgWidth,
-                cropModal.imgHeight,
-                cropModal.zoom
-            );
-            setCropModal((prev) => ({
-                ...prev,
-                offsetX: clampOffset(dragStartRef.current.offsetX + dx, limits.maxX),
-                offsetY: clampOffset(dragStartRef.current.offsetY + dy, limits.maxY),
-            }));
-        };
-
-        const onPointerUp = () => setDragging(false);
-
-        window.addEventListener("pointermove", onPointerMove);
-        window.addEventListener("pointerup", onPointerUp);
-        return () => {
-            window.removeEventListener("pointermove", onPointerMove);
-            window.removeEventListener("pointerup", onPointerUp);
-        };
-    }, [cropModal, dragging]);
 
     const openCropEditor = (file, type) => {
         const reader = new FileReader();
@@ -246,9 +314,7 @@ function Profile() {
     };
 
     const uploadImage = (e, type) => {
-        if (!user) return;
-
-        const file = e.target.files[0];
+        const file = e.target.files?.[0];
         if (!file) return;
         e.target.value = "";
         openCropEditor(file, type);
@@ -259,6 +325,7 @@ function Profile() {
 
         const preset = cropPresets[cropModal.type];
         const image = new Image();
+
         image.onload = () => {
             const fitScale = Math.max(
                 preset.previewWidth / image.width,
@@ -285,6 +352,7 @@ function Profile() {
             canvas.width = preset.outputWidth;
             canvas.height = preset.outputHeight;
             const ctx = canvas.getContext("2d");
+
             ctx.drawImage(
                 image,
                 srcX,
@@ -298,37 +366,101 @@ function Profile() {
             );
 
             const output = canvas.toDataURL("image/jpeg", 0.92);
-            const profileKey = `profilePic_${user.displayName}`;
-            const coverKey = `coverPic_${user.displayName}`;
+            const { profileKey, coverKey } = getMediaKeys(user);
 
-            if (cropModal.type === "profile") {
-                localStorage.setItem(profileKey, output);
-                setProfilePic(output);
-            } else {
-                localStorage.setItem(coverKey, output);
-                setCoverPic(output);
-            }
+            const nextProfilePic = cropModal.type === "profile"
+                ? output
+                : localStorage.getItem(profileKey) || profilePic || "";
+            const nextCoverPic = cropModal.type === "cover"
+                ? output
+                : localStorage.getItem(coverKey) || coverPic || "";
 
-            const email = user.email || localStorage.getItem("email") || "";
+            localStorage.setItem(profileKey, nextProfilePic);
+            localStorage.setItem(coverKey, nextCoverPic);
+            setProfilePic(nextProfilePic);
+            setCoverPic(nextCoverPic);
+
+            const updatedUser = {
+                ...user,
+                profilePicUrl: nextProfilePic,
+                coverPicUrl: nextCoverPic,
+            };
+            setUser(updatedUser);
+            persistUserSession(updatedUser);
+
+            const email = (user.email || localStorage.getItem("email") || "").trim();
             if (email) {
-                axios.put("http://localhost:8080/api/users/media", {
-                    email,
-                    profilePicUrl:
-                        cropModal.type === "profile"
-                            ? output
-                            : localStorage.getItem(profileKey) || "",
-                    coverPicUrl:
-                        cropModal.type === "cover"
-                            ? output
-                            : localStorage.getItem(coverKey) || "",
-                }).catch(() => {
-                    // keep local fallback
-                });
+                axios
+                    .put("http://localhost:8080/api/users/media", {
+                        email,
+                        profilePicUrl: nextProfilePic,
+                        coverPicUrl: nextCoverPic,
+                    })
+                    .catch(() => {
+                        // keep local fallback
+                    });
             }
 
             setCropModal((prev) => ({ ...prev, open: false }));
         };
+
         image.src = cropModal.src;
+    };
+
+    const handleProfileSave = async (e) => {
+        e.preventDefault();
+
+        if (!user) return;
+
+        const nextDisplayName = displayNameInput.trim();
+        const nextFullName = fullNameInput.trim();
+
+        if (!nextDisplayName) {
+            setSaveError("Username is required.");
+            setSaveMessage("");
+            return;
+        }
+
+        if (!usernameRule.test(nextDisplayName)) {
+            setSaveError("Username must be at least 8 characters and can only contain letters, numbers, and underscore.");
+            setSaveMessage("");
+            return;
+        }
+
+        setIsSavingProfile(true);
+        setSaveError("");
+        setSaveMessage("");
+
+        try {
+            const res = await axios.put("http://localhost:8080/api/users/profile", {
+                email: user.email,
+                displayName: nextDisplayName,
+                fullName: nextFullName,
+            });
+
+            const updatedUser = {
+                ...user,
+                displayName: res.data?.displayName || nextDisplayName,
+                fullName: res.data?.fullName || nextFullName,
+                email: res.data?.email || user.email,
+                role: res.data?.role || user.role || "USER",
+            };
+
+            setUser(updatedUser);
+            setDisplayNameInput(updatedUser.displayName || "");
+            setFullNameInput(updatedUser.fullName || "");
+            persistUserSession(updatedUser);
+            setSaveMessage("Profile updated successfully.");
+            setIsEditingProfile(false);
+        } catch (err) {
+            const message =
+                err?.response?.data?.message ||
+                err?.response?.data?.detail ||
+                "Unable to save profile.";
+            setSaveError(message);
+        } finally {
+            setIsSavingProfile(false);
+        }
     };
 
     if (!user) return null;
@@ -337,91 +469,172 @@ function Profile() {
         <div className="profile-page">
             <BackButton className="back-btn" fallback="/dashboard" label="" />
 
-            <div
-                className="profile-cover"
-                style={{
-                    backgroundImage: coverPic
-                        ? `url(${coverPic})`
-                        : `url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f")`,
-                }}
-            >
-                <label className="cover-upload">
-                    ✎
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => uploadImage(e, "cover")}
-                    />
-                </label>
-            </div>
+            <div className="profile-bg-orb orb-one" />
+            <div className="profile-bg-orb orb-two" />
 
-            <div className="profile-card">
-                <div className="profile-avatar-box">
-                    {profilePic ? (
-                        <img
-                            src={profilePic}
-                            alt="Profile"
-                            className="profile-avatar-img"
-                        />
-                    ) : (
-                        <div className="profile-avatar">
-                            {user.displayName.charAt(0).toUpperCase()}
-                        </div>
-                    )}
+            <div className="profile-shell">
+                <section
+                    className="profile-hero"
+                    style={{
+                        backgroundImage: coverPic
+                            ? `url(${coverPic})`
+                            : `url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f")`,
+                    }}
+                >
+                    <div className="profile-hero-overlay" />
 
-                    <label className="avatar-upload">
-                        ✎
+                    <label className="cover-upload" title="Update cover photo">
+                        Edit Cover
                         <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => uploadImage(e, "profile")}
+                            onChange={(e) => uploadImage(e, "cover")}
                         />
                     </label>
-                </div>
 
-                <div className="profile-details">
-                    <h2 className="profile-display">{user.displayName}</h2>
-                    <p className="profile-fullname">{user.fullName}</p>
-                </div>
-            </div>
-
-            <section className="profile-content">
-                <div className="profile-section-header">
-                    <h3>Your Listings</h3>
-                    <p>{listings.length} items</p>
-                </div>
-
-                {listings.length === 0 ? (
-                    <p className="empty-text">No listings yet.</p>
-                ) : (
-                    <div className="profile-listings">
-                        {listings.map((item) => (
-                            <div
-                                key={item.id}
-                                className="listing-card"
-                                onClick={() => navigate(`/item/${item.id}`)}
-                            >
+                    <div className="profile-hero-content">
+                        <div className="profile-avatar-box">
+                            {profilePic ? (
                                 <img
-                                    src={getPrimaryImage(item)}
-                                    alt={item.title}
-                                    className="listing-img"
+                                    src={profilePic}
+                                    alt="Profile"
+                                    className="profile-avatar-img"
                                 />
-
-                                <div className="listing-info">
-                                    <h4>{item.title}</h4>
-                                    <p className="listing-price">
-                                        ₱{formatPrice(item.price)}
-                                    </p>
-                                    <p className="listing-category">
-                                        {item.category} • {item.condition || "Used"} •{" "}
-                                        {getListingAgeLabel(item)}
-                                    </p>
+                            ) : (
+                                <div className="profile-avatar">
+                                    {(user.displayName || "U").charAt(0).toUpperCase()}
                                 </div>
-                            </div>
-                        ))}
+                            )}
+
+                            <label className="avatar-upload" title="Update profile photo">
+                                Edit
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => uploadImage(e, "profile")}
+                                />
+                            </label>
+                        </div>
+
+                        <div className="profile-intro">
+                            <h1>{user.displayName || "User"}</h1>
+                            <p>{user.email || "No email available"}</p>
+                        </div>
                     </div>
-                )}
-            </section>
+                </section>
+
+                <section className="profile-panel glass-panel">
+                    <div className="profile-panel-head">
+                        <h3>Account Settings</h3>
+                        <p>Keep your profile details up to date.</p>
+                    </div>
+
+                    {!isEditingProfile ? (
+                        <div className="profile-readonly">
+                            <p><span>Username:</span> {user.displayName || "-"}</p>
+                            <p><span>Full Name:</span> {user.fullName || "-"}</p>
+                            <p><span>Email:</span> {user.email || "-"}</p>
+                            {saveMessage && <p className="profile-feedback success">{saveMessage}</p>}
+                            <button
+                                type="button"
+                                className="profile-save-btn"
+                                onClick={() => {
+                                    setSaveMessage("");
+                                    setSaveError("");
+                                    setDisplayNameInput((user.displayName || "").trim());
+                                    setFullNameInput((user.fullName || "").trim());
+                                    setIsEditingProfile(true);
+                                }}
+                            >
+                                Edit Profile
+                            </button>
+                        </div>
+                    ) : (
+                        <form className="profile-form" onSubmit={handleProfileSave}>
+                        <label>
+                            Username
+                            <input
+                                type="text"
+                                value={displayNameInput}
+                                onChange={(e) => setDisplayNameInput(e.target.value)}
+                                placeholder="Enter username"
+                                pattern="^[A-Za-z0-9_]{8,}$"
+                                title="Username must be at least 8 characters and only use letters, numbers, and underscore."
+                                required
+                            />
+                        </label>
+
+                            <label>
+                                Full Name
+                                <input
+                                    type="text"
+                                    value={fullNameInput}
+                                    onChange={(e) => setFullNameInput(e.target.value)}
+                                    placeholder="Enter full name"
+                                />
+                            </label>
+
+                            <label>
+                                Email
+                                <input type="email" value={user.email || ""} disabled readOnly />
+                            </label>
+
+                            {saveError && <p className="profile-feedback error">{saveError}</p>}
+
+                            <div className="profile-form-actions">
+                                <button
+                                    type="button"
+                                    className="crop-btn secondary"
+                                    onClick={() => {
+                                        setIsEditingProfile(false);
+                                        setSaveError("");
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button type="submit" className="profile-save-btn" disabled={isSavingProfile}>
+                                    {isSavingProfile ? "Saving..." : "Save Changes"}
+                                </button>
+                            </div>
+                        </form>
+                    )}
+                </section>
+
+                <section className="profile-panel listings-panel glass-panel">
+                    <div className="profile-section-header">
+                        <h3>Your Listings</h3>
+                        <p>{listings.length} items</p>
+                    </div>
+
+                    {listings.length === 0 ? (
+                        <p className="empty-text">No listings yet.</p>
+                    ) : (
+                        <div className="profile-listings">
+                            {listings.map((item) => (
+                                <div
+                                    key={item.id}
+                                    className="listing-card"
+                                    onClick={() => navigate(`/item/${item.id}`)}
+                                >
+                                    <img
+                                        src={getPrimaryImage(item)}
+                                        alt={item.title}
+                                        className="listing-img"
+                                    />
+
+                                    <div className="listing-info">
+                                        <h4>{item.title}</h4>
+                                        <p className="listing-price">₱{formatPrice(item.price)}</p>
+                                        <p className="listing-category">
+                                            {item.category} • {item.condition || "Used"} • {getListingAgeLabel(item)}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </section>
+            </div>
 
             {cropModal.open && (
                 <div
@@ -434,6 +647,7 @@ function Profile() {
                                 ? "Adjust Profile Photo"
                                 : "Adjust Cover Photo"}
                         </h3>
+
                         <div
                             className={`crop-preview ${
                                 cropPresets[cropModal.type].shape === "circle"

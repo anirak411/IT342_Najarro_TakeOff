@@ -10,6 +10,7 @@ function Register() {
     const [password, setPassword] = useState("");
     const [adminExists, setAdminExists] = useState(true);
     const [requestAdmin, setRequestAdmin] = useState(false);
+    const usernameRule = /^[A-Za-z0-9_]{8,}$/;
 
     const navigate = useNavigate();
 
@@ -28,10 +29,16 @@ function Register() {
     const handleRegister = async (e) => {
         e.preventDefault();
 
+        const trimmedUsername = displayName.trim();
+        if (!usernameRule.test(trimmedUsername)) {
+            alert("Username must be at least 8 characters and can only contain letters, numbers, and underscore.");
+            return;
+        }
+
         try {
             await axios.post("http://localhost:8080/api/auth/register", {
                 fullName,
-                displayName,
+                displayName: trimmedUsername,
                 email,
                 password,
                 role: requestAdmin && !adminExists ? "ADMIN" : "USER",
@@ -74,9 +81,11 @@ function Register() {
                         <input
                             className="auth-input"
                             type="text"
-                            placeholder="Display Name (Username)"
+                            placeholder="Username"
                             value={displayName}
                             onChange={(e) => setDisplayName(e.target.value)}
+                            pattern="^[A-Za-z0-9_]{8,}$"
+                            title="Username must be at least 8 characters and only use letters, numbers, and underscore."
                             required
                         />
 

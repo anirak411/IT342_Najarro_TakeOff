@@ -15,11 +15,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
 public class AuthController {
+    private static final Pattern USERNAME_PATTERN = Pattern.compile("^[A-Za-z0-9_]{8,}$");
 
     private final UserRepository userRepository;
     private final SessionService sessionService;
@@ -39,7 +41,12 @@ public class AuthController {
 
         if (normalizedEmail.isBlank() || rawPassword.isBlank() || fullName.isBlank() || displayName.isBlank()) {
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse(false, "fullName, displayName, email, and password are required"));
+                    .body(new ApiResponse(false, "Full name, username, email, and password are required"));
+        }
+
+        if (!isValidUsername(displayName)) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(false, "Username must be at least 8 characters and can only contain letters, numbers, and underscore."));
         }
 
         if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
@@ -47,9 +54,9 @@ public class AuthController {
                     .body(new ApiResponse(false, "Email already exists!"));
         }
 
-        if (userRepository.existsByDisplayName(displayName)) {
+        if (userRepository.existsByDisplayNameIgnoreCase(displayName)) {
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse(false, "Display name already taken!"));
+                    .body(new ApiResponse(false, "Username already taken!"));
         }
 
         UserRole requestedRole = parseRole(request.getRole());
@@ -223,6 +230,10 @@ public class AuthController {
 
     private boolean isBcryptHash(String value) {
         return value != null && (value.startsWith("$2a$") || value.startsWith("$2b$") || value.startsWith("$2y$"));
+    }
+
+    private boolean isValidUsername(String username) {
+        return username != null && USERNAME_PATTERN.matcher(username.trim()).matches();
     }
 
     private AuthSessionResponse buildAuthSessionResponse(User user, String sessionToken) {

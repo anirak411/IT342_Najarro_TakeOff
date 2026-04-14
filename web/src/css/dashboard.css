@@ -588,18 +588,16 @@
     position: absolute;
     top: 55px;
     right: 0;
-    width: 216px;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(30px) saturate(175%);
-    -webkit-backdrop-filter: blur(30px) saturate(175%);
-    border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.78);
-    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.14);
+    width: 224px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
     overflow: hidden;
     z-index: 5000;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 0;
     padding: 6px;
     animation: fadeIn 0.16s ease;
 }
@@ -609,35 +607,63 @@
     border: none;
     background: transparent;
     text-align: left;
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 500;
     color: #0f172a;
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background 0.16s ease, color 0.16s ease;
+    transition: background 0.16s ease;
 }
 
 .dropdown-menu button:hover {
-    background: rgba(241, 245, 249, 0.95);
+    background: #f8fafc;
 }
 
 .dropdown-title {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     color: #64748b;
-    padding: 8px 10px 10px;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.22);
-    margin-bottom: 2px;
+    padding: 8px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 4px;
 }
 
 .dropdown-empty {
     padding: 10px 12px;
     font-size: 13px;
     color: #64748b;
-    border-radius: 10px;
+    border-radius: 8px;
     background: transparent;
+}
+
+.profile-menu {
+    width: 236px;
+}
+
+.dropdown-user {
+    padding: 10px 10px 8px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 4px;
+}
+
+.dropdown-user-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown-user-email {
+    margin-top: 2px;
+    font-size: 12px;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .notif-badge {
@@ -659,7 +685,7 @@
 
 .logout-option {
     color: #dc2626;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 @keyframes fadeIn {
