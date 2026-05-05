@@ -1,8 +1,8 @@
 package com.it342.backend.security;
 
-import com.it342.backend.model.User;
-import com.it342.backend.model.UserRole;
-import com.it342.backend.repository.UserRepository;
+import com.it342.backend.features.user.User;
+import com.it342.backend.features.user.UserRole;
+import com.it342.backend.features.user.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
