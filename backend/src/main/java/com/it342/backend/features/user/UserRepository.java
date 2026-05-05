@@ -1,0 +1,23 @@
+package com.it342.backend.features.user;
+
+import com.it342.backend.features.user.User;
+import com.it342.backend.features.user.UserRole;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    boolean existsByEmail(String email);
+    boolean existsByEmailIgnoreCase(String email);
+
+    boolean existsByDisplayName(String displayName);
+    boolean existsByDisplayNameIgnoreCase(String displayName);
+
+    boolean existsByRole(UserRole role);
+
+    long countByRole(UserRole role);
+
+    Optional<User> findByEmail(String email);
+    Optional<User> findByEmailIgnoreCase(String email);
+}
