@@ -1,24 +1,24 @@
 import React, { useState } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
-import Register from "./pages/Register";
-import Login from "./pages/Login";
-import AuthCallback from "./pages/AuthCallback";
-import Dashboard from "./pages/Dashboard";
-import LandingPage from "./pages/LandingPage.jsx";
-import Profile from "./pages/Profile.jsx";
-import ItemDetails from "./pages/ItemDetails.jsx";
-import Settings from "./pages/Settings.jsx";
-import SellerProfile from "./pages/SellerProfile.jsx";
-import ChatWidget from "./pages/ChatWidget.jsx";
-import MyItems from "./pages/MyItems.jsx";
-import Sidebar from "./pages/Sidebar.jsx";
-import Transactions from "./pages/Transactions.jsx";
-import AdminLayout from "./pages/admin/AdminLayout.jsx";
-import AdminOverview from "./pages/admin/AdminOverview.jsx";
-import AdminTransactions from "./pages/admin/AdminTransactions.jsx";
-import AdminListings from "./pages/admin/AdminListings.jsx";
-import AdminUsers from "./pages/admin/AdminUsers.jsx";
+import Register from "./features/auth/Register";
+import Login from "./features/auth/Login";
+import AuthCallback from "./features/auth/AuthCallback";
+import Dashboard from "./features/dashboard/Dashboard";
+import LandingPage from "./features/dashboard/LandingPage";
+import Profile from "./features/profile/Profile";
+import ItemDetails from "./features/item/ItemDetails";
+import Settings from "./features/profile/Settings";
+import SellerProfile from "./features/profile/SellerProfile";
+import ChatWidget from "./features/chat/ChatWidget";
+import MyItems from "./features/item/MyItems";
+import Sidebar from "./features/dashboard/Sidebar";
+import Transactions from "./features/transaction/Transactions";
+import AdminLayout from "./features/admin/AdminLayout";
+import AdminOverview from "./features/admin/AdminOverview";
+import AdminTransactions from "./features/admin/AdminTransactions";
+import AdminListings from "./features/admin/AdminListings";
+import AdminUsers from "./features/admin/AdminUsers";
 import { getSessionToken, isAdminUser, isAuthenticated } from "./utils/session";
 
 function App() {

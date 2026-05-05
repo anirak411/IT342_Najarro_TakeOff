@@ -6,7 +6,7 @@ import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import { getSessionToken } from "./utils/session";
 
-axios.defaults.baseURL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080").replace(/\/+$/, "");
+axios.defaults.baseURL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
 
 axios.interceptors.request.use((config) => {
     const sessionToken = getSessionToken();
