@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { getSessionToken } from "../../utils/session";
 
 function AdminTransactions() {
     const [transactions, setTransactions] = useState([]);
@@ -8,7 +9,9 @@ function AdminTransactions() {
     const fetchTransactions = async () => {
         setLoading(true);
         try {
-            const res = await axios.get("/api/transactions");
+            const res = await axios.get("/api/transactions", {
+                headers: { "X-Session-Token": getSessionToken() },
+            });
             setTransactions(Array.isArray(res.data) ? res.data : []);
         } catch {
             setTransactions([]);
@@ -23,7 +26,9 @@ function AdminTransactions() {
 
     const callAdminAction = async (id, action) => {
         try {
-            await axios.put(`/api/transactions/${id}/${action}`, {});
+            await axios.put(`/api/transactions/${id}/${action}`, {}, {
+                headers: { "X-Session-Token": getSessionToken() },
+            });
             await fetchTransactions();
         } catch (err) {
             const msg =

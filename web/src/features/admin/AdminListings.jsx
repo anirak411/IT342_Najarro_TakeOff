@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { getPrimaryImage } from "../../utils/itemImages";
 
 function AdminListings() {
     const [items, setItems] = useState([]);
@@ -74,10 +75,10 @@ function AdminListings() {
                     {items.map((item) => (
                         <div className="admin-card" key={item.id}>
                             <div className="admin-listing-media">
-                                {item.imageUrl ? (
+                                {getPrimaryImage(item) ? (
                                     <img
                                         className="admin-listing-image"
-                                        src={item.imageUrl}
+                                        src={getPrimaryImage(item)}
                                         alt={`${item.title || "Listing"} photo`}
                                         loading="lazy"
                                     />

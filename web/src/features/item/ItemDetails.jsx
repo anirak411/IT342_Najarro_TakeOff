@@ -3,7 +3,7 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import "./details.css";
 import { getItemImages, getPrimaryImage } from "../../utils/itemImages";
-import BackButton from "../../features/common/BackButton";
+import BackButton from "../common/BackButton";
 import { getListingAgeLabel } from "../../utils/itemTime";
 import { getCleanSellerName } from "../../utils/seller";
 import { isItemOwnedByUser } from "../../utils/ownership";

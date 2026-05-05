@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import "./profile.css";
 import { getPrimaryImage } from "../../utils/itemImages";
-import BackButton from "../../features/common/BackButton";
+import BackButton from "../common/BackButton";
 import { getListingAgeLabel } from "../../utils/itemTime";
 
 function SellerProfile() {
